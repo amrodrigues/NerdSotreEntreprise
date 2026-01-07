@@ -35,7 +35,7 @@ namespace NSE.Indentidade.API.Models
             public IEnumerable<ClaimViewModel> Claims { get; set; }
         }
 
-        public class LoginResponseViewModel
+        public class UsuarioRespostaLogin
         {
             public string AccessToken { get; set; }
             public double ExpiresIn { get; set; }
