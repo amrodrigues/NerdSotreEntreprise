@@ -1,8 +1,6 @@
 # 🔐 NSE.Identidade.API (NerdStore Enterprise - API de Identidade)
 
-Este projeto é uma API RESTful responsável pela gestão de usuários e autenticação (Registro e Login) da plataforma NerdStore Enterprise.
-
-Utiliza ASP.NET Core Identity e Entity Framework Core para persistência de dados.
+Esta API é o Serviço de Identidade da plataforma NerdStore Enterprise. Ela centraliza a autenticação, autorização e gestão de usuários, emitindo tokens JWT (JSON Web Tokens) para permitir a comunicação segura entre os demais microserviços.
 
 ## 🚀 Tecnologias e Dependências Principais
 
@@ -10,7 +8,8 @@ Utiliza ASP.NET Core Identity e Entity Framework Core para persistência de dado
 * **Banco de Dados:** SQL Server
 * **ORM:** Entity Framework Core
 * **Autenticação/Autorização:** ASP.NET Core Identity
-* **Documentação:** Swagger/OpenAPI (Swashbuckle)
+* **Documentação:** Swagger UI (OpenAPI)
+* **DSegurança:**  Autenticação via JWT com criptografia HMAC-SHA256
 
 ## ⚙️ Configuração do Projeto
 
@@ -53,5 +52,16 @@ Acesso
 Para visualizar todos os endpoints e modelos de dados, acesse a interface do Swagger UI:
 
 https://localhost:7261/swagger
+
+
+# 🏗️ Arquitetura e Organização
+
+O projeto segue os princípios de Clean Code e separação de responsabilidades. Recentemente, a Program.cs foi refatorada para utilizar Métodos de Extensão, movendo as configurações complexas para a pasta /Configuration:
+
+* **IdentityConfig.cs:** Gerencia a configuração do banco de dados, políticas do Identity e parâmetros do JWT.
+
+* **SwaggerConfig.cs:** Centraliza a documentação e versionamento da API.
+
+* **MainController.cs:** Classe base para controllers, fornecendo notificações de erro e respostas padronizadas.
 
  
