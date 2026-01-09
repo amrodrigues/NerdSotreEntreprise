@@ -57,7 +57,7 @@ namespace NSE.Indentidade.API.Controllers
 
         }
 
-        [HttpPost("auntenticar")]
+        [HttpPost("autenticar")]
         public async Task<ActionResult> Login(UsuarioLogin usuarioLogin)
         {
             if (!ModelState.IsValid)
