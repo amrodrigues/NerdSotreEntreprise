@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
-using NSE.Indentidade.API.Extensions;
+using NSE.WebAPI.Core.Identidade;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -62,6 +62,13 @@ namespace NSE.Indentidade.API.Controllers
         {
             if (!ModelState.IsValid)
                 return CustomResponse(ModelState);
+
+            var segredoNaConfig = _appSettings.Secret;
+
+            if (string.IsNullOrEmpty(segredoNaConfig))
+            {
+                return BadRequest("Erro Crítico: O Segredo do JWT não foi carregado do arquivo de configuração!");
+            }
 
             var result = await _signInManager.PasswordSignInAsync(usuarioLogin.Email, usuarioLogin.Senha, false, true);
 

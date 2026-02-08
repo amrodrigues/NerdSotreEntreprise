@@ -1,4 +1,6 @@
+using Microsoft.Extensions.Configuration;
 using NSE.Indentidade.API.Configuration;
+using NSE.WebAPI.Core.Identidade;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,9 +27,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-// IMPORTANTE: Authentication SEMPRE vem antes de Authorization
-app.UseAuthentication();
-app.UseAuthorization();
+app.UseAuthConfiguration();
 
 app.MapRazorPages();
 app.MapControllers();

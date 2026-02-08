@@ -361,3 +361,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/src/services/NSE.Catalogo.API/Configuration/SwaggerConfig.cs
