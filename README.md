@@ -128,4 +128,25 @@ A comunicação com as APIs de backend segue padrões de alta resiliência:
 * Desserialização JSON: Configurada com PropertyNameCaseInsensitive = true para suportar diferentes padrões de nomenclatura (camelCase vs PascalCase).
 
 * Mapeamento de Dados: Uso de [JsonPropertyName] em Models como UsuarioRespostaLogin para garantir que campos como sub (do JWT) sejam mapeados corretamente para a propriedade Id.
+
+### 🛡️ Segurança e Filtros de Autorização (ACL)
+
+O projeto utiliza um sistema de **Access Control List (ACL)** baseado em Claims, permitindo um controle granular sobre o que cada usuário pode acessar ou executar.
+
+#### Componentes de Segurança:
+- **`ClaimsCustomAuthorize`**: Atributo derivado de `TypeFilterAttribute`. Ele é utilizado para decorar Actions ou Controllers, exigindo uma Claim específica (ex: `[ClaimsCustomAuthorize("Catalogo", "Ler")]`).
+- **`RequisitoClaimFilter`**: Um filtro de autorização que implementa `IAuthorizationFilter`. Ele intercepta a requisição antes de chegar à Action e valida:
+    1. Se o usuário está autenticado (**401 Unauthorized**).
+    2. Se o usuário possui a permissão necessária (**403 Forbidden**).
+- **`CustomAuthorization`**: Classe estática utilitária que executa a lógica de comparação entre as Claims presentes no `HttpContext` e os requisitos da rota.
+
+
+
+#### Exemplo de Uso no Controller:
+```csharp
+[ClaimsCustomAuthorize("Catalogo", "Editar")]
+public async Task<IActionResult> AtualizarProduto(Guid id) 
+{ 
+    // Somente usuários com a claim 'Catalogo' e valor 'Editar' entram aqui
+}
  
