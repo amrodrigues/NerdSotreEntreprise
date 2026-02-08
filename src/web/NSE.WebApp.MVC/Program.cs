@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using NSE.WebApp.MVC.Configuration;
 using NSE.WebApp.MVC.Extensions;
+using NSE.WebApp.MVC.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,11 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/acesso-negado";
     });
 
+builder.Services.AddHttpClient<IAutenticacaoService, AutenticacaoService>()
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true
+    });
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
