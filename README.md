@@ -26,8 +26,13 @@ O projeto utiliza uma conexão com o SQL Server. Certifique-se de que a *connect
 ### 2. Migrações e Inicialização do Banco
 Execute os comandos a seguir no Console do Gerenciador de Pacotes ou via CLI para aplicar as migrações e criar o banco de dados e tabelas do Identity:
 
-```json
-dotnet ef database update --context ApplicationDbContext
+1. Crie as migrações:
+```bash
+ dotnet ef migrations add InitialCreate 
+```
+2. Aplique as migrações para criar o banco de dados:
+```bash
+ dotnet ef database update  
 ```
 
 ### 3. Middleware e Roteamento (Program.cs)
