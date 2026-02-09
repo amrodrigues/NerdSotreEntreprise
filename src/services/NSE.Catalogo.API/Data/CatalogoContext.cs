@@ -3,6 +3,8 @@ using System.Linq;
 using NSE.Catalogo.API.Models;
 using System.Threading.Tasks;
 using NSE.Core.Data;
+using NSE.Core.Messages;
+using System.ComponentModel.DataAnnotations;
 
 namespace NSE.Catalogo.API.Data
 {
@@ -15,6 +17,9 @@ namespace NSE.Catalogo.API.Data
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Ignore<Event>();
+            modelBuilder.Ignore<ValidationResult>();
+
             foreach (var property in modelBuilder.Model.GetEntityTypes().SelectMany(
                 e => e.GetProperties().Where(p => p.ClrType == typeof(string))))
                 property.SetColumnType("varchar(100)");
