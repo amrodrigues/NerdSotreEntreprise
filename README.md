@@ -154,4 +154,28 @@ public async Task<IActionResult> AtualizarProduto(Guid id)
 { 
     // Somente usuários com a claim 'Catalogo' e valor 'Editar' entram aqui
 }
+```
+
+# 🛒 NSE.Clientes.API - Microserviço de Gestão de Clientes
+
+Este microserviço faz parte do ecossistema **NerdStore Enterprise (NSE)**. Ele é responsável por todo o ciclo de vida do cliente, desde o registro inicial até a manutenção de endereços, utilizando práticas avançadas de **DDD (Domain Driven Design)** e **CQRS**.
+
+
+### 📐 Desenho da Solução
+O microserviço foi desenhado para ser totalmente desacoplado e resiliente. Abaixo está o fluxo de processamento:
+
+Fluxo de Registro de Cliente:
+
+* **Entrada:** A Controller recebe um comando via POST.
+
+* **Mediação:** O IMediatorHandler encaminha o RegistrarClienteCommand para o Handler responsável.
+
+* **Regra de Negócio:** O ClienteCommandHandler valida o estado da entidade e dos Value Objects (CPF e E-mail).
+
+* **Persistência:** O EF Core salva os dados. Durante o Commit, o ChangeTracker captura eventos de domínio.
+
+* **Notificação:** Se tudo ocorrer bem, o evento ClienteRegistradoEvent é publicado para o sistema.
+
+---
+
  
