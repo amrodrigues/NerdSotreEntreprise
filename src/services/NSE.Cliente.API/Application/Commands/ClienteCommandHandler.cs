@@ -38,7 +38,7 @@ namespace NSE.Clientes.API.Application.Commands
 
             return await PersistirDados(_clienteRepository.UnitOfWork);
 
-           // if (!await _clienteRepository.UnitOfWork.Commit()) AdicionarErro("Houve um erro ao registrar o cliente.");
+           if (!await _clienteRepository.UnitOfWork.Commit()) AdicionarErro("Houve um erro ao registrar o cliente.");
 
          }
     }

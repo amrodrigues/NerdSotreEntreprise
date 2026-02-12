@@ -12,10 +12,15 @@ namespace NSE.WebApp.MVC.Services
         {
             var options = new JsonSerializerOptions
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase, 
+                // Isso transforma "Nome" em "nome"
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             };
+
+            // É VITAL passar o 'options' como segundo argumento aqui!
+            var json = JsonSerializer.Serialize(dado, options);
+
             return new StringContent(
-                JsonSerializer.Serialize(dado),
+                json,
                 Encoding.UTF8,
                 "application/json");
         }

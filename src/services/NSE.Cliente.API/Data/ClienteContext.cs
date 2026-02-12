@@ -14,10 +14,10 @@ namespace NSE.Clientes.API.Data
     {
         private readonly IMediatorHandler _mediatorHandler;
 
-        public ClientesContext(DbContextOptions<ClientesContext> options )
+        public ClientesContext(DbContextOptions<ClientesContext> options, IMediatorHandler mediatorHandler)
             : base(options)
         {
-          
+            _mediatorHandler = mediatorHandler;
             ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
             ChangeTracker.AutoDetectChangesEnabled = false;
         }

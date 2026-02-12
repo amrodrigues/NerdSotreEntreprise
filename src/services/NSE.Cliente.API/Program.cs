@@ -1,9 +1,10 @@
+using EasyNetQ;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using NSE.Clientes.API.Configuration;
 using NSE.Clientes.API.Data;
 using NSE.WebAPI.Core.Identidade;
-using MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,10 @@ builder.Services.AddSwaggerConfiguration();
 builder.Services.AddJwtConfiguration(builder.Configuration);
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+
+builder.Services.AddSingleton<IBus>(sp =>
+    RabbitHutch.CreateBus("host=localhost:5672;username=guest;password=guest",
+        register => register.EnableNewtonsoftJson()));
 
 var app = builder.Build();
 

@@ -1,7 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using EasyNetQ;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using NSE.Core.Messages.Integration;
 using NSE.WebAPI.Core.Identidade;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -18,13 +20,18 @@ namespace NSE.Indentidade.API.Controllers
         public readonly UserManager<IdentityUser> _userManager;
         private readonly AppSettings _appSettings;
 
+        private   IBus _bus;
+
         public AuthController(SignInManager<IdentityUser> signInManager, 
                               UserManager<IdentityUser> userManager,
-                              IOptions<AppSettings> appSettings)
+                              IOptions<AppSettings> appSettings,
+                              IBus bus
+                            )
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _appSettings = appSettings.Value;
+            _bus = bus;
         }
         [HttpPost("nova-conta")]
         public async Task<ActionResult> Registar(UsuarioRegistro usuarioRegistro)
@@ -44,6 +51,7 @@ namespace NSE.Indentidade.API.Controllers
             if (result.Succeeded)
             {
                // await _signInManager.SignInAsync(user, isPersistent: false);
+                 var clienteResult = await RegistrarCliente(usuarioRegistro);
                 return CustomResponse(await GerarJwt(usuarioRegistro.Email));
             }
 
@@ -56,6 +64,29 @@ namespace NSE.Indentidade.API.Controllers
             return CustomResponse();
 
         }
+
+        private async Task<ResponseMessage> RegistrarCliente(UsuarioRegistro usuarioRegistro)
+        {
+            var usuario = await _userManager.FindByEmailAsync(usuarioRegistro.Email);
+
+            var usuarioRegistrado = new UsuarioRegistradoIntegrationEvent(
+                Guid.Parse(usuario.Id), usuarioRegistro.Nome, usuarioRegistro.Email, usuarioRegistro.Cpf);
+
+
+            var sucesso = await _bus.Rpc.RequestAsync<UsuarioRegistradoIntegrationEvent, ResponseMessage>(usuarioRegistrado);
+           
+            return sucesso;
+            //try
+            //{
+            //    return await _bus.RequestAsync<UsuarioRegistradoIntegrationEvent, ResponseMessage>(usuarioRegistrado);
+            //}
+            //catch
+            //{
+            //    await _userManager.DeleteAsync(usuario);
+            //    throw;
+            //}
+        }
+
 
         [HttpPost("autenticar")]
         public async Task<ActionResult> Login(UsuarioLogin usuarioLogin)
