@@ -1,3 +1,15 @@
+# 🛒 NerdStore Enterprise: Tecnologia e Performance em Cada Detalhe
+Bem-vindo à NerdStore Enterprise, uma plataforma de e-commerce projetada com arquitetura de ponta para oferecer a melhor experiência de compra. Nosso sistema foi desenvolvido utilizando Microserviços em .NET 8, garantindo segurança, escalabilidade e resiliência em todas as etapas da sua jornada.
+
+O que nos diferencia:
+Segurança Avançada: Implementamos autenticação via JWT (JSON Web Tokens) e gestão de identidade centralizada para proteger seus dados e garantir transações seguras.
+
+Integração em Tempo Real: Utilizamos o RabbitMQ para um processamento de pedidos assíncrono e eficiente, garantindo que as informações fluam sem interrupções entre nossos serviços.
+
+Arquitetura Moderna: Desenvolvido sob os princípios de Clean Code, DDD (Domain Driven Design) e CQRS, nosso sistema foca no que realmente importa: a entrega rápida e precisa do seu produto.
+
+Interface Amigável: Uma camada frontal (WebApp MVC) intuitiva e responsiva, integrada diretamente aos nossos microserviços de catálogo e clientes.
+
 # 🔐 NSE.Identidade.API (NerdStore Enterprise - API de Identidade)
 
 Esta API é o Serviço de Identidade da plataforma NerdStore Enterprise. Ela centraliza a autenticação, autorização e gestão de usuários, emitindo tokens JWT (JSON Web Tokens) para permitir a comunicação segura entre os demais microserviços.
@@ -176,6 +188,52 @@ Fluxo de Registro de Cliente:
 
 * **Notificação:** Se tudo ocorrer bem, o evento ClienteRegistradoEvent é publicado para o sistema.
 
----
+# 🏗️ NerdStore Enterprise (NSE) - Guia de Infraestrutura e Integração
+Configuração de Infraestrutura e Integração (RabbitMQ & Docker)
+
+Para que o ecossistema de microserviços funcione corretamente, especialmente a comunicação assíncrona entre `NSE.Identidade.API` e `NSE.Clientes.API`, é necessário configurar o ambiente de mensageria.
+
+### 1. Requisito: Docker Desktop
+O RabbitMQ será executado dentro de um container Docker para facilitar a gerência de serviços.
+
+* **Instalação:**
+    1. Baixe o [Docker Desktop para Windows](https://www.docker.com/products/docker-desktop/).
+    2. Durante a instalação, certifique-se de habilitar o **WSL 2** (Windows Subsystem for Linux).
+    3. Após instalar, reinicie o computador se solicitado.
+* **Verificação:** O ícone da baleia deve aparecer na barra de tarefas com o status "Running".
+
+### 2. Subindo o Barramento de Mensagens (RabbitMQ)
+Com o Docker ativo, abra o terminal e execute o seguinte comando para subir o RabbitMQ com o painel de gerenciamento:
+
+```bash
+docker run -d --name rabbitmq -p 5672:5672 -p 15672:15672 rabbitmq:3-management
+```
+
+* **Porta 5672:** Utilizada pelas APIs para envio/recebimento de mensagens.
+
+* **Porta 15672:**  Painel administrativo acessível via navegador em http://localhost:15672 (Login/Senha: guest).
+
+### 3. Ajustes Técnicos Realizados (Fixes)
+Para garantir que o fluxo de registro de usuários funcionasse de ponta a ponta, foram aplicadas as seguintes correções:
+
+## A. Serialização JSON (camelCase)
+As APIs foram configuradas para utilizar camelCase na serialização de objetos. Isso evita erros 400 Bad Request causados por incompatibilidade de nomes de propriedades (PascalCase vs camelCase) entre a WebApp e as APIs.
+
+```bash
+protected StringContent ObterConteudo(object dado)
+{
+    var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+    return new StringContent(JsonSerializer.Serialize(dado, options), Encoding.UTF8, "application/json");
+}
+```
+## B. EasyNetQ & NewtonsoftJson
+Devido a mudanças na versão 7.x do EasyNetQ, foi necessário habilitar explicitamente o suporte ao NewtonsoftJson no Program.cs para evitar falhas na entrega das mensagens de integração.
+
+## C. Injeção de Dependência no Contexto
+Corrigida a NullReferenceException no ClientesContext através da injeção correta do IMediatorHandler no construtor. Isso permite que os eventos de domínio (Domain Events) sejam publicados após o Commit() no banco de dados com sucesso.
+
+ 
+
+
 
  
