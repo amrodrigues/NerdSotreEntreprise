@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using NSE.Indentidade.API.Controllers;
 using NSE.WebApp.MVC.Models;
 
 namespace NSE.WebApp.MVC.Controllers

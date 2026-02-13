@@ -16,7 +16,7 @@ namespace NSE.Indentidade.API.Controllers
 
             return BadRequest(new ValidationProblemDetails(new Dictionary<string, string[]>
             {
-                { "Messagens", Errors.ToArray() }
+                { "Mensagens", Errors.ToArray() }
                }));
         }
 
@@ -43,6 +43,16 @@ namespace NSE.Indentidade.API.Controllers
         protected void LimparErros()
         {
             Errors.Clear();
+        }
+
+        protected ActionResult CustomResponse(FluentValidation.Results.ValidationResult validationResult)
+        {
+            foreach (var error in validationResult.Errors)
+            {
+                AdicionarErroProcessamento(error.ErrorMessage);
+            }
+
+            return CustomResponse();
         }
     }
 }

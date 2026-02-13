@@ -10,9 +10,12 @@ builder.Services.AddControllers();
 builder.Services.AddRazorPages();
 
 // Registra o Bus como Singleton (uma única conexão para toda a aplicação)
-builder.Services.AddSingleton<IBus>(sp =>
-    RabbitHutch.CreateBus("host=localhost:5672;username=guest;password=guest",
-        register => register.EnableNewtonsoftJson()));
+//builder.Services.AddSingleton<IBus>(sp =>
+//    RabbitHutch.CreateBus("host=localhost:5672;username=guest;password=guest",
+//        register => register.EnableNewtonsoftJson()));
+
+builder.Services.AddMessageBusConfiguration(builder.Configuration);
+
 // Nossos métodos de extensão
 builder.Services.AddIdentityConfiguration(builder.Configuration);
 builder.Services.AddSwaggerConfiguration();

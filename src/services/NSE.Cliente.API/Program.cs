@@ -25,10 +25,10 @@ builder.Services.AddJwtConfiguration(builder.Configuration);
 
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
-builder.Services.AddSingleton<IBus>(sp =>
-    RabbitHutch.CreateBus("host=localhost:5672;username=guest;password=guest",
-        register => register.EnableNewtonsoftJson()));
-
+//builder.Services.AddSingleton<IBus>(sp =>
+//    RabbitHutch.CreateBus("host=localhost:5672;username=guest;password=guest",
+//        register => register.EnableNewtonsoftJson()));
+builder.Services.AddMessageBusConfiguration(builder.Configuration);
 var app = builder.Build();
 
 // Configurações do Pipeline

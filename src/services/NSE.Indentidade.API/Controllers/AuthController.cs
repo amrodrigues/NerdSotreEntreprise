@@ -1,9 +1,9 @@
-﻿using EasyNetQ;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using NSE.Core.Messages.Integration;
+using NSE.MessageBus;
 using NSE.WebAPI.Core.Identidade;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -12,32 +12,30 @@ using static NSE.Indentidade.API.Models.UserViewModel;
 
 namespace NSE.Indentidade.API.Controllers
 {
-  
     [Route("api/identidade")]
     public class AuthController : MainController
     {
-        public readonly SignInManager<IdentityUser> _signInManager;
-        public readonly UserManager<IdentityUser> _userManager;
+        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<IdentityUser> _userManager;
         private readonly AppSettings _appSettings;
 
-        private   IBus _bus;
+        private readonly IMessageBus _bus;
 
-        public AuthController(SignInManager<IdentityUser> signInManager, 
+        public AuthController(SignInManager<IdentityUser> signInManager,
                               UserManager<IdentityUser> userManager,
                               IOptions<AppSettings> appSettings,
-                              IBus bus
-                            )
+                              IMessageBus bus)
         {
             _signInManager = signInManager;
             _userManager = userManager;
             _appSettings = appSettings.Value;
             _bus = bus;
         }
+
         [HttpPost("nova-conta")]
-        public async Task<ActionResult> Registar(UsuarioRegistro usuarioRegistro)
+        public async Task<ActionResult> Registrar(UsuarioRegistro usuarioRegistro)
         {
-            if (!ModelState.IsValid)
-                return CustomResponse(ModelState);
+            if (!ModelState.IsValid) return CustomResponse(ModelState);
 
             var user = new IdentityUser
             {
@@ -50,11 +48,16 @@ namespace NSE.Indentidade.API.Controllers
 
             if (result.Succeeded)
             {
-               // await _signInManager.SignInAsync(user, isPersistent: false);
-                 var clienteResult = await RegistrarCliente(usuarioRegistro);
+                var clienteResult = await RegistrarCliente(usuarioRegistro);
+
+                if (!clienteResult.ValidationResult.IsValid)
+                {
+                    await _userManager.DeleteAsync(user);
+                    return CustomResponse(clienteResult.ValidationResult);
+                }
+
                 return CustomResponse(await GerarJwt(usuarioRegistro.Email));
             }
-
 
             foreach (var error in result.Errors)
             {
@@ -62,52 +65,20 @@ namespace NSE.Indentidade.API.Controllers
             }
 
             return CustomResponse();
-
         }
-
-        private async Task<ResponseMessage> RegistrarCliente(UsuarioRegistro usuarioRegistro)
-        {
-            var usuario = await _userManager.FindByEmailAsync(usuarioRegistro.Email);
-
-            var usuarioRegistrado = new UsuarioRegistradoIntegrationEvent(
-                Guid.Parse(usuario.Id), usuarioRegistro.Nome, usuarioRegistro.Email, usuarioRegistro.Cpf);
-
-
-            var sucesso = await _bus.Rpc.RequestAsync<UsuarioRegistradoIntegrationEvent, ResponseMessage>(usuarioRegistrado);
-           
-            return sucesso;
-            //try
-            //{
-            //    return await _bus.RequestAsync<UsuarioRegistradoIntegrationEvent, ResponseMessage>(usuarioRegistrado);
-            //}
-            //catch
-            //{
-            //    await _userManager.DeleteAsync(usuario);
-            //    throw;
-            //}
-        }
-
 
         [HttpPost("autenticar")]
         public async Task<ActionResult> Login(UsuarioLogin usuarioLogin)
         {
-            if (!ModelState.IsValid)
-                return CustomResponse(ModelState);
+            if (!ModelState.IsValid) return CustomResponse(ModelState);
 
-            var segredoNaConfig = _appSettings.Secret;
-
-            if (string.IsNullOrEmpty(segredoNaConfig))
-            {
-                return BadRequest("Erro Crítico: O Segredo do JWT não foi carregado do arquivo de configuração!");
-            }
-
-            var result = await _signInManager.PasswordSignInAsync(usuarioLogin.Email, usuarioLogin.Senha, false, true);
+            var result = await _signInManager.PasswordSignInAsync(usuarioLogin.Email, usuarioLogin.Senha,
+                false, true);
 
             if (result.Succeeded)
             {
                 return CustomResponse(await GerarJwt(usuarioLogin.Email));
             }
-
 
             if (result.IsLockedOut)
             {
@@ -115,12 +86,7 @@ namespace NSE.Indentidade.API.Controllers
                 return CustomResponse();
             }
 
-
-
-            AdicionarErroProcessamento("usuario ou Senha incorreta");
-
-            
-
+            AdicionarErroProcessamento("Usuário ou Senha incorretos");
             return CustomResponse();
         }
 
@@ -188,5 +154,23 @@ namespace NSE.Indentidade.API.Controllers
 
         private static long ToUnixEpochDate(DateTime date)
             => (long)Math.Round((date.ToUniversalTime() - new DateTimeOffset(1970, 1, 1, 0, 0, 0, TimeSpan.Zero)).TotalSeconds);
+
+        private async Task<ResponseMessage> RegistrarCliente(UsuarioRegistro usuarioRegistro)
+        {
+            var usuario = await _userManager.FindByEmailAsync(usuarioRegistro.Email);
+
+            var usuarioRegistrado = new UsuarioRegistradoIntegrationEvent(
+                Guid.Parse(usuario.Id), usuarioRegistro.Nome, usuarioRegistro.Email, usuarioRegistro.Cpf);
+
+            try
+            {
+                return await _bus.RequestAsync<UsuarioRegistradoIntegrationEvent, ResponseMessage>(usuarioRegistrado);
+            }
+            catch
+            {
+                await _userManager.DeleteAsync(usuario);
+                throw;
+            }
+        }
     }
 }
